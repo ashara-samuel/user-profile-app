@@ -1,94 +1,59 @@
-# User Profile App (Dockerized Full-Stack Project)
+# Gather — User Profile App
 
-This is a **Dockerized full-stack application** that demonstrates how to containerize and orchestrate a simple **frontend, backend, and MongoDB database** using **Docker & Docker Compose**.  
+Gather is a Dockerized profile-management application built with a static HTML/CSS/JavaScript client, an Express API, and MongoDB. It includes account registration and login, email verification and password recovery, private sessions, profile editing and visibility controls, and searchable public profiles.
 
-The project is designed to showcase **DevOps skills** such as containerization, image management, and deployment workflow, rather than frontend/backend complexity.  
+## Features
 
----
+- Passwords are hashed with Node.js `scrypt`; session and one-time email tokens are random, stored as hashes, and expire.
+- Session cookies are HTTP-only and same-site; HTTPS deployments set `NODE_ENV=production` to enable secure cookies.
+- Email verification and password-reset links are sent over configurable SMTP.
+- Profile updates are validated, public profile listings are paginated and searchable, and private profiles are excluded from discovery.
+- Authentication and password-reset endpoints are rate-limited.
+- Docker Compose includes readiness/health checks, persistent MongoDB storage, an internal API reverse proxy, and restart policies.
+- GitHub Actions runs backend checks/tests and builds the application containers.
 
-## 📌 Project Structure
+## Run locally
 
-project-root/
-├── backend/
-│ ├── Dockerfile # Backend Dockerfile
-│ ├── package.json # Node.js dependencies
-│ └── server.js # Express backend
-├── frontend/
-│ ├── Dockerfile # Frontend Dockerfile
-│ ├── index.html # UI
-│ └── script.js # Client-side JS
-├── docker-compose.yml # Compose file to run multi-container app
-├── data.json # Sample data (if required)
-└── README.md # Project documentation
+Requirements: Docker Desktop with Docker Compose.
 
-## 🚀 Features
-- **Frontend**: A simple static web UI served via **Nginx**.  
-- **Backend**: Node.js + Express server exposing APIs.  
-- **Database**: MongoDB as persistent storage.  
-- **Dockerized**: Each component runs inside a container.  
-- **Orchestrated**: Managed via `docker-compose`.  
+1. Copy `.env.example` to `.env` if you want to configure SMTP. Compose works without SMTP in local development; email verification is then skipped and password-reset emails are disabled.
+2. Start the stack:
 
----
-
-## 🛠️ Prerequisites
-Make sure you have installed:
-- [Docker](https://docs.docker.com/get-docker/)  
-- [Docker Compose](https://docs.docker.com/compose/)  
-- [Git](https://git-scm.com/)  
-
----
-
-## 📦 Docker Images
-All images are available on **Docker Hub** under my namespace:
-
-
-
----
-
-## ⚡ Setup & Run
-
-1. **Clone the Repository**
-```bash
-   git clone https://github.com/anandkumarsah/user-profile-app.git
-   cd user-profile-app
+   ```sh
+   docker compose up --build
    ```
 
-2. **Start Services with Docker Compose**
+3. Open [http://localhost:8080](http://localhost:8080).
+4. Stop it with `docker compose down`. To also remove persisted local database data, use `docker compose down -v`.
 
-```bash
-   docker-compose up -d
+The API is proxied through the frontend at `/api`; the backend and MongoDB are not published directly to the host. The health endpoint is `/api/health`.
+
+## Email setup
+
+Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and optionally `EMAIL_FROM` in `.env`. For SMTP port 465 set `SMTP_SECURE=true`; for most STARTTLS providers on port 587 use `false`.
+
+In local development without SMTP, the API logs verification links for newly registered accounts. Do not use this mode in production.
+
+Profiles stored by the earlier demo have no passwords. A returning user can claim a legacy profile by creating an account with the same email address; in production this requires completing email verification. Before migrating a production database, check for case-insensitive duplicate email addresses so MongoDB can enforce the new unique email index.
+
+## Production deployment checklist
+
+- Set `NODE_ENV=production`, `APP_ORIGIN` to the app's public HTTPS origin, and supply an authenticated TLS MongoDB `MONGO_URI` plus SMTP credentials through the host's secret manager (not a committed `.env` file).
+- Terminate TLS at a trusted reverse proxy and set `TRUST_PROXY=true` only when the app is actually behind that proxy.
+- Replace the Compose MongoDB service/URI with a managed, authenticated MongoDB deployment with encrypted connections, backups, and restore testing.
+- Deploy behind an HTTPS load balancer; configure restrictive network access, monitoring, log collection, and alerting.
+- The included in-memory rate limiter is suitable for a single API instance. Before running multiple replicas, configure a shared rate-limit store (for example Redis).
+- Review retention, privacy, and account deletion requirements for the data and jurisdictions where the service will operate.
+
+## Development
+
+The backend tests use Node's built-in test runner:
+
+```sh
+cd backend
+npm ci
+npm run check
+npm test
 ```
-   This will spin up:
-   -frontend (Nginx server) on port 8080
-   -backend (Node.js API) on port 5000
-   -mongo database on port 27017
 
-3.**Access Application**
-  -Frontend → http://localhost:8080
-  -Backend API → http://localhost:5000
-
-4.**Stop Containers**
-```bash
-   docker-compose down
-```
-## 🛡️ Why this project?
-This project is not just a web app — it’s built to demonstrate DevOps expertise:
-
- -Containerization of frontend, backend, and database.
- -Image publishing to Docker Hub.
- -Multi-container orchestration using docker-compose.
- -A reproducible workflow for deploying apps.
-
-## 📂 Future Enhancements
-
--CI/CD pipeline integration (GitHub Actions).
--Kubernetes deployment.
--Logging & monitoring with ELK stack.
-
-## 👨‍💻 Author
-**Anand Kumar Sah**
-- 🌐 [LinkedIn](https://www.linkedin.com/in/anandkrsah)
-- 🐙 [GitHub](https://github.com/anandkumarsah)  
-- 🐳 [Docker Hub](https://hub.docker.com/u/anandkumarsah)
-  
-⭐ If you found this project useful, don’t forget to star the repo!
+The GitHub Actions workflow runs these checks and builds both Docker images on pushes to `main` and pull requests.

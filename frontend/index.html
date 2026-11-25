@@ -1,95 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>User Profile App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-
-    .container {
-      margin-top: 40px;
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      width: 400px;
-    }
-
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button.add {
-      background: #4CAF50;
-      color: white;
-    }
-    button.add:hover {
-      background: #45a049;
-    }
-
-    button.get {
-      background: #2196F3;
-      color: white;
-    }
-    button.get:hover {
-      background: #1976D2;
-    }
-
-    pre {
-      background: #f0f0f0;
-      padding: 15px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 13px;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Gather — Your profile, your space</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>User Profile App</h1>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Gather home"><span class="brand-mark">g</span> gather</a>
+    <span class="topbar-note">A little space that’s yours.</span>
+    <button id="logout-button" class="button button-quiet hidden" type="button">Sign out</button>
+  </header>
 
-    <input type="text" id="name" placeholder="Enter name" />
-    <input type="email" id="email" placeholder="Enter email" />
+  <main>
+    <section id="auth-view" class="auth-layout">
+      <div class="intro">
+        <p class="eyebrow">YOUR CORNER OF THE INTERNET</p>
+        <h1>Make a little<br><span>space for you.</span></h1>
+        <p class="intro-copy">A simple, thoughtful home for the details you want to share—and the ones you don’t.</p>
+        <div class="ornament" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
 
-    <button class="add" onclick="addUser()">➕ Add User</button>
-    <button class="get" onclick="getUsers()">📋 Get Users</button>
+      <div class="auth-card">
+        <div id="auth-tabs" class="tabs" role="tablist" aria-label="Account options">
+          <button class="tab active" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button>
+          <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false">Create account</button>
+        </div>
+        <div id="auth-message" class="notice hidden" role="status" aria-live="polite"></div>
+        <form id="auth-form">
+          <label id="name-field" class="field hidden" for="name">Your name
+            <input id="name" name="name" autocomplete="name" maxlength="80" placeholder="How should we call you?">
+          </label>
+          <label class="field" for="email">Email address
+            <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com">
+          </label>
+          <label id="password-field" class="field" for="password">Password
+            <input id="password" name="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" placeholder="At least 10 characters">
+          </label>
+          <button id="auth-submit" class="button button-primary full" type="submit">Sign in <span aria-hidden="true">→</span></button>
+        </form>
+        <button id="forgot-button" class="text-button" type="button">Forgot your password?</button>
+        <form id="reset-form" class="hidden">
+          <p class="form-intro">We’ll email you a secure link to choose a new password.</p>
+          <label class="field" for="reset-email">Email address
+            <input id="reset-email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com">
+          </label>
+          <button class="button button-primary full" type="submit">Send reset link <span aria-hidden="true">→</span></button>
+          <button id="back-to-login" class="text-button" type="button">Back to sign in</button>
+        </form>
+        <form id="new-password-form" class="hidden">
+          <p class="form-intro">Choose a new password for your account.</p>
+          <label class="field" for="new-password">New password
+            <input id="new-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required placeholder="At least 10 characters">
+          </label>
+          <button class="button button-primary full" type="submit">Update password <span aria-hidden="true">→</span></button>
+        </form>
+      </div>
+    </section>
 
-    <h3>Users List:</h3>
-    <pre id="users">Click "Get Users" to load data...</pre>
-  </div>
+    <section id="verify-view" class="message-view hidden">
+      <div class="message-card"><span class="success-icon" aria-hidden="true">✓</span><p class="eyebrow">ONE LAST THING</p><h1>Check your inbox.</h1><p id="verify-message">We’ve sent a verification link to your email address.</p><button id="verify-button" class="button button-primary" type="button">I’ve verified my email</button><form id="verify-resend-form" class="verify-resend"><label class="field" for="verify-email">Need another link? Enter your email<input id="verify-email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label><button class="text-button" type="submit">Resend verification email</button><div id="verify-resend-message" class="notice hidden" role="status" aria-live="polite"></div></form></div>
+    </section>
 
-  <script src="script.js"></script>
+    <section id="profile-view" class="app-layout hidden">
+      <div class="welcome-row">
+        <div><p class="eyebrow">YOUR PROFILE</p><h1 id="welcome-title">Welcome back.</h1></div>
+        <span class="privacy-pill"><span aria-hidden="true">●</span> Your space</span>
+      </div>
+      <div class="dashboard-grid">
+        <section class="panel profile-panel" aria-labelledby="edit-heading">
+          <div class="panel-heading"><div><p class="eyebrow">THE DETAILS</p><h2 id="edit-heading">Make it yours</h2></div><div id="avatar-preview" class="avatar" aria-hidden="true">G</div></div>
+          <div id="profile-message" class="notice hidden" role="status" aria-live="polite"></div>
+          <form id="profile-form">
+            <label class="field" for="profile-name">Name<input id="profile-name" name="name" required maxlength="80"></label>
+            <label class="field" for="profile-email">Email<input id="profile-email" name="email" type="email" disabled></label>
+            <label class="field" for="bio">A little about you<textarea id="bio" name="bio" rows="3" maxlength="500" placeholder="What are you into?"></textarea><span class="field-hint">Up to 500 characters</span></label>
+            <div class="field-row">
+              <label class="field" for="location">Based in<input id="location" name="location" maxlength="100" placeholder="City, country"></label>
+              <label class="field" for="website">Your link<input id="website" name="website" type="url" maxlength="200" placeholder="https://"></label>
+            </div>
+            <label class="field" for="avatar-url">Photo URL <span class="optional">optional</span><input id="avatar-url" name="avatarUrl" type="url" maxlength="500" placeholder="https://example.com/photo.jpg"></label>
+            <label class="field" for="visibility">Profile visibility<select id="visibility" name="visibility"><option value="public">Public — discoverable by members</option><option value="private">Private — only visible to you</option></select></label>
+            <button class="button button-primary full" type="submit">Save changes <span aria-hidden="true">→</span></button>
+          </form>
+          <details class="danger-zone"><summary>Account settings</summary><button id="delete-account" class="button button-danger" type="button">Delete my account</button><p>This permanently removes your profile and signs you out.</p></details>
+        </section>
+        <section class="panel discover-panel" aria-labelledby="discover-heading">
+          <div class="panel-heading"><div><p class="eyebrow">AROUND HERE</p><h2 id="discover-heading">People & profiles</h2></div><span class="sparkle" aria-hidden="true">✳</span></div>
+          <p class="section-copy">A few people who’ve made a space of their own.</p>
+          <form id="search-form" class="search-form" role="search">
+            <label class="sr-only" for="search">Search profiles</label>
+            <input id="search" type="search" maxlength="80" placeholder="Find someone by name">
+            <button class="button button-dark" type="submit">Search</button>
+          </form>
+          <div id="profiles-list" class="profiles-list" aria-live="polite"></div>
+          <button id="more-profiles" class="button button-quiet full hidden" type="button">Show more</button>
+        </section>
+      </div>
+    </section>
+  </main>
+  <footer><span>gather</span><span>Take up a little space.</span></footer>
+  <script src="script.js" defer></script>
 </body>
 </html>
